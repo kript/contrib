@@ -16,7 +16,7 @@ def mkdir_p(path):
     except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
-        else: 
+        else:
             raise
 
 
@@ -91,7 +91,8 @@ def set_parallel_buffer_size(connection_string, megabytes):
     run_cmd(sshcmd, check_rc=True)
 
     # local
-    filename = os.path.expanduser('~/.irods/irods_environment.json')
+    local_irods_environment = os.environ.get('IRODS_ENVIRONMENT_FILE', '~/.irods/irods_environment.json')
+    filename = os.path.expanduser(local_irods_environment)
     localcmd = ['sed', '-i', '-e', 's,{0}": [0-9]*,{0}": {1},'.format(keyname, megabytes)]
     localcmd.extend([filename])
     run_cmd(localcmd, check_rc=True)
@@ -99,7 +100,11 @@ def set_parallel_buffer_size(connection_string, megabytes):
 
 def main():
     # check parameters
-    usage = 'Usage: %prog [options] iput_or_iget user@host delay_device results_file'
+    usage = ''' Usage: %prog [options] iput_or_iget user@host delay_device results_file
+                NOTE: 
+                This will permanently modify your local and the servers irods_environment.json file
+                server @host must have the trafic controll (tc) package installed
+                The account on @host must have passwordless sudo rights for the tc and sysctl commands'''
     parser = optparse.OptionParser(usage)
     parser.add_option('-q', '--quiet', action='store_const', const=0, dest='verbosity', help='print less information to stdout')
     parser.add_option('-v', '--verbose', action='count', dest='verbosity', default=1, help='print more information to stdout')
