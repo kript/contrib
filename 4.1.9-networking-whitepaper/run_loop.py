@@ -9,22 +9,25 @@ import time
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
-        else: raise
+        else: 
+            raise
+
 
 def run_cmd(cmd, run_env=False, unsafe_shell=False, check_rc=False):
     log = logging.getLogger(__name__)
     # run it
-    if run_env == False:
+    if run_env is False:
         run_env = os.environ.copy()
     log.debug('run_env: {0}'.format(run_env))
     log.info('running: {0}, unsafe_shell={1}, check_rc={2}'.format(cmd, unsafe_shell, check_rc))
-    if unsafe_shell == True:
+    if unsafe_shell is True:
         p = subprocess.Popen(cmd, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     else:
         p = subprocess.Popen(cmd, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -32,11 +35,12 @@ def run_cmd(cmd, run_env=False, unsafe_shell=False, check_rc=False):
     log.info('  stdout: {0}'.format(out.strip()))
     log.info('  stderr: {0}'.format(err.strip()))
     log.info('')
-    if check_rc != False:
+    if check_rc is not False:
         if p.returncode != 0:
             log.error(check_rc)
             sys.exit(p.returncode)
     return p.returncode
+
 
 def set_delay(connection_string, device, total_milliseconds):
     each_milliseconds = int(total_milliseconds) / 2.0
@@ -49,6 +53,7 @@ def set_delay(connection_string, device, total_milliseconds):
     for cmd in cmds:
         remotecmd = ['ssh', '-t', connection_string, " ".join(cmd)]
         run_cmd(remotecmd, check_rc=True)
+
 
 def set_tcp_settings(connection_string, size):
     if size == 'default':
@@ -73,22 +78,24 @@ def set_tcp_settings(connection_string, size):
         remotecmd = ['ssh', '-t', connection_string, " ".join(cmd)]
         run_cmd(remotecmd, check_rc=True)
 
+
 def set_parallel_buffer_size(connection_string, megabytes):
-    keyname='irods_transfer_buffer_size_for_parallel_transfer_in_megabytes'
+    keyname = 'irods_transfer_buffer_size_for_parallel_transfer_in_megabytes'
 
     # remote
     sedcmd = 'sed -i -e \'s,{0}": [0-9]*,{0}": {1},\''.format(keyname, megabytes)
-    filename='/var/lib/irods/.irods/irods_environment.json'
-    remotecmd=['sudo', '{0} {1}'.format(sedcmd, filename)]
-    sshcmd=['ssh', '-t', connection_string]
+    filename = '/var/lib/irods/.irods/irods_environment.json'
+    remotecmd = ['sudo', '{0} {1}'.format(sedcmd, filename)]
+    sshcmd = ['ssh', '-t', connection_string]
     sshcmd.extend(remotecmd)
     run_cmd(sshcmd, check_rc=True)
 
     # local
-    filename=os.path.expanduser('~/.irods/irods_environment.json')
-    localcmd=['sed', '-i', '-e', 's,{0}": [0-9]*,{0}": {1},'.format(keyname, megabytes)]
+    filename = os.path.expanduser('~/.irods/irods_environment.json')
+    localcmd = ['sed', '-i', '-e', 's,{0}": [0-9]*,{0}": {1},'.format(keyname, megabytes)]
     localcmd.extend([filename])
     run_cmd(localcmd, check_rc=True)
+
 
 def main():
     # check parameters
@@ -187,4 +194,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
